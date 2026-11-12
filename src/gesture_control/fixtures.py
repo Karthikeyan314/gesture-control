@@ -43,7 +43,8 @@ class Recording:
         }
 
     def save(self, path: str | Path) -> None:
-        Path(path).write_text(json.dumps(self.to_dict(), separators=(",", ":")) + "\n", "utf-8")
+        text = json.dumps(self.to_dict(), separators=(",", ":")) + "\n"
+        Path(path).write_text(text, "utf-8", newline="\n")  # same bytes on every OS
 
 
 def load_recording(path: str | Path) -> Recording:
