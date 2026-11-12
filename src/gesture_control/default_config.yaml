@@ -1,0 +1,102 @@
+# Gesture control default config.
+# Copy it with `gesture-control init-config my-gestures.yaml`, edit it, then run
+# `gesture-control --config my-gestures.yaml`.
+#
+# `gestures` maps what the camera sees to a named action in `actions`.
+#   Static poses (fire after being held still for `hold` seconds):
+#     open_palm, fist, thumbs_up, thumbs_down, point, peace, three, pinch, call
+#   Dynamic gestures:
+#     swipe_left, swipe_right  open palm moved quickly sideways
+#     scroll                   peace sign moved up or down from where it started (joystick)
+#     scribble                 pointing finger wiggled left-right a few times
+#     cursor, pinch_start, pinch_end   only in mouse mode
+# `repeat` re-fires while the pose is still held; `cooldown` is the minimum gap between firings.
+
+camera:
+  index: 0
+  width: 640
+  height: 480
+  mirror: true
+
+model:
+  path: models/hand_landmarker.task
+  min_detection_confidence: 0.6
+  min_tracking_confidence: 0.5
+
+classifier:
+  finger_extension_ratio: 1.15
+  thumb_extension_ratio: 1.05
+  thumb_min_spread: 0.5
+  thumb_vertical_margin: 0.3
+  pinch_threshold: 0.25
+  pinch_min_index_reach: 1.1
+
+# A pose only counts once it wins `min_agree` of the last `window` frames.
+stabilizer:
+  window: 5
+  min_agree: 3
+
+swipe:
+  min_distance: 0.22
+  max_duration: 0.6
+  max_vertical_ratio: 0.6
+
+scribble:
+  window: 1.5
+  min_reversals: 4
+  min_amplitude: 0.04
+
+scroll:
+  deadzone: 0.04
+  gain: 120.0
+  max_rate: 30.0
+
+# Hold the three-finger pose to switch mouse mode on or off. In mouse mode the index knuckle
+# drives the cursor, pinching presses the left button (hold the pinch to drag), and every other
+# gesture is ignored so you can't trigger shortcuts by accident.
+mouse_mode:
+  toggle_gesture: three
+  hold: 0.8
+  cooldown: 1.5
+  margin: 0.15
+  min_cutoff: 1.5
+  beta: 8.0
+
+gestures:
+  open_palm:   {action: play_pause, hold: 0.5, cooldown: 1.5}
+  thumbs_up:   {action: volume_up, hold: 0.3, repeat: 0.25}
+  thumbs_down: {action: volume_down, hold: 0.3, repeat: 0.25}
+  swipe_right: {action: next_window, cooldown: 0.8}
+  swipe_left:  {action: previous_window, cooldown: 0.8}
+  scroll:      {action: scroll}
+  fist:        {action: start_recording, hold: 1.0, cooldown: 3.0}  # mic grip
+  scribble:    {action: open_notes, cooldown: 3.0}
+  call:        {action: screenshot, hold: 0.6, cooldown: 2.0}
+  cursor:      {action: move_cursor}
+  pinch_start: {action: mouse_down}
+  pinch_end:   {action: mouse_up}
+
+# Action types: key (press keys in turn), hotkey (press keys together), launch (open the first
+# target that works: app path, URI or shell:AppsFolder id), scroll, move_cursor, mouse_down,
+# mouse_up, click. Key names are pyautogui's (see pyautogui.KEYBOARD_KEYS).
+actions:
+  play_pause:      {type: key, keys: [playpause], label: Play/pause}
+  volume_up:       {type: key, keys: [volumeup], label: Volume up}
+  volume_down:     {type: key, keys: [volumedown], label: Volume down}
+  next_window:     {type: hotkey, keys: [alt, tab], label: Next window}
+  previous_window: {type: hotkey, keys: [alt, shift, tab], label: Previous window}
+  screenshot:      {type: hotkey, keys: [win, shift, s], label: Snipping tool}
+  start_recording:
+    type: launch
+    label: Sound Recorder
+    targets:
+      - shell:AppsFolder\Microsoft.WindowsSoundRecorder_8wekyb3d8bbwe!App
+  # Prefer voice typing instead? Use: {type: hotkey, keys: [win, h], label: Voice typing}
+  open_notes:
+    type: launch
+    label: Notes
+    targets: ["onenote:", notepad.exe]
+  scroll:     {type: scroll, label: Scroll}
+  move_cursor: {type: move_cursor, label: Cursor}
+  mouse_down: {type: mouse_down, label: Mouse down}
+  mouse_up:   {type: mouse_up, label: Mouse up}

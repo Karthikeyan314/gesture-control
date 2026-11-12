@@ -1,0 +1,15 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+dist/
+
+# Downloaded model and local recordings
+models/
+recordings/
+
+# Secrets and local tooling
+.env
+.claude/
